@@ -38,3 +38,8 @@ The equality function
 
 ## Data-fetching
 The data fetching component of the function
+
+# Replacement
+
+
+# Extending to 32 bits
