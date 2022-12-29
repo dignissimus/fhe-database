@@ -131,7 +131,7 @@ To reduce the number of table lookups, we can instead define one table to check 
 ```python
 ALL_ONE = cnp.LookupTable([0 for _ in range(2**4 - 1)] + [1])
 
-def fhe_equal(left, right):
+def four_bit_equality(left, right):
     x = 0
     for i in range(1, 5):
         k = 4 - i
@@ -145,7 +145,27 @@ def fhe_equal(left, right):
 ```
 
 ## Data-fetching
-The data fetching component of the function
+The data fetching component of the function takes two bits. We can take the same approach as earlier and successively operate on each bit of the integer. What we do here, is essentially a bitwise and between a sequence of 1s or a sequences of 0s against the original data. In code, this becomes the following.
+
+```python
+def fetch_data(control, data):
+    result = 0
+
+    for i in range(1, 5):
+        k = 4 - i
+        bit = data >> k
+        result += AND[control + bit] << k
+        data -= bit << k
+
+    return result
+```
+
+Getting the data from an entry with an encrypted key and value given an arbitrary query is now simple! The code looks like this
+```python
+def read_entry(key, value, query):
+    equal = four_bit_equality(key, query)
+    return fetch_data(equal, value)
+```
 
 # Replacement
 
