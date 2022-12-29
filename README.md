@@ -27,3 +27,14 @@ def insert(self, key, value):
 
 # Retrieval
 For the retrieval operation, $F_{\text{key}}(D)$ should return the value associated with some key in a database. One way to go about approaching this is finding a function on an entry that returns 0 when the entry's key does not match and returns the value when the entry has a matching key. This satisfies $F_{\text{key}}(D) = \sum_{i}^{n} f_{\text{key}}(D_i)$.
+
+Here, we can break down $f$ into two parts. One part for equality-checking and the other for data-fetching. The equality function takes two inputs. It returns one when these inputs are equal and zero otherwise.
+
+The data-fetching part takes two inputs `equal` and `value`. If `equal` is one, then we should return `value`. If equal is zero then we should return zero.
+
+## Equality
+
+The equality function 
+
+## Data-fetching
+The data fetching component of the function
