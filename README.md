@@ -176,4 +176,6 @@ def replace(old_key, old_value, new_key, new_value):
     return fetch_data(equal, new_value) + fetch_data(1 - equal, old_value)
 ```
 
+## Deletion
+
 ## Extending to 32 bits
