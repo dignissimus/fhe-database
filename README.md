@@ -25,14 +25,14 @@ def insert(self, key, value):
     self.base.append((key, value))
 ```
 
-# Retrieval
+## Retrieval
 For the retrieval operation, $F_{\text{key}}(D)$ should return the value associated with some key in a database. One way to go about approaching this is finding a function on an entry that returns 0 when the entry's key does not match and returns the value when the entry has a matching key. This satisfies $F_{\text{key}}(D) = \sum_{i}^{n} f_{\text{key}}(D_i)$.
 
 Here, we can break down $f$ into two parts. One part for equality-checking and the other for data-fetching. The equality function takes two inputs. It returns one when these inputs are equal and zero otherwise.
 
 The data-fetching part takes two inputs `equal` and `value`. If `equal` is one, then we should return `value`. If equal is zero then we should return zero.
 
-## Equality
+### Equality
 
 The equality function can be written by comparing the bits in each place of two numbers. If we can perform an equality check on 1-bit integers, then we can check equality on integers of any size. For now, let's assume that each number fits into 4 bits and later extend this to 32 bits.
 
@@ -144,7 +144,7 @@ def four_bit_equality(left, right):
     return ALL_ONE[x]
 ```
 
-## Data-fetching
+### Data-fetching
 The data fetching component of the function takes two bits. We can take the same approach as earlier and successively operate on each bit of the integer. What we do here, is essentially a bitwise and between a sequence of 1s or a sequences of 0s against the original data. In code, this becomes the following.
 
 ```python
@@ -167,7 +167,13 @@ def read_entry(key, value, query):
     return fetch_data(equal, value)
 ```
 
-# Replacement
+## Replacement
+Replacing values can be thought of as applying an update operation to every single entry. Where the entry's value remains the same if the keys is different to the query and becomes the new value if the keys are the same. We can implement this function using the functions defined earlier! This is the same as fetching data from the entry in the case that the key is not equal to the query and fetching data from the updated value if the key is the equal to query. At most one of these is non-zero so we can simply add these values.
 
+```python
+def replace(old_key, old_value, new_key, new_value):
+    equal = four_bit_equality(old_key, new_key)
+    return fetch_data(equal, new_value) + fetch_data(1 - equal, old_value)
+```
 
-# Extending to 32 bits
+## Extending to 32 bits
