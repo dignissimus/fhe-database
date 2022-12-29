@@ -34,7 +34,115 @@ The data-fetching part takes two inputs `equal` and `value`. If `equal` is one, 
 
 ## Equality
 
-The equality function 
+The equality function can be written by comparing the bits in each place of two numbers. If we can perform an equality check on 1-bit integers, then we can check equality on integers of any size. For now, let's assume that each number fits into 4 bits and later extend this to 32 bits.
+
+For a 4 bit integer, we can begin by checking the most significant bit. We can clear the other bits by right-shifting the number by 3. After performing this operation on both integers, we can compare these bits. We can subtract these bits from the original numbers to achieve and repeat the process, but this time with a shift of 2, then 1, then 0. After completing this process, we're left with 4 bits which we need to verify are all 1. This is done using a table look-ups on 2-bit integers.
+
+Represent an `AND` gate using a table lookup
+
+| Input | Output |
+|-------|--------|
+| 00 | 0  |
+| 01  | 0  |
+| 10  | 0  |
+| 11 | 1 |
+
+Using this we now have`AND(x, y) = Table[x << 1 + y]`.
+
+For checking 1-bit equality we can do the same thing.
+
+| Input | Output |
+|-------|--------|
+| 00 | 1 |
+| 01 | 0 |
+| 10 | 0 |
+| 11 | 1 |
+
+And `EQUAL(x, y) = Table[x << 1 + y]`.
+
+Putting this together, we get 
+
+```python
+import concrete.numpy as cnp
+
+AND = cnp.LookupTable([0, 0, 0, 1])
+EQUAL = cnp.LookupTable([1, 0, 0, 1])
+
+one_bit_equality(left, right):
+    return EQUAL[left << 1 + right]
+    
+def bit_and(left, right):
+    return AND[left << 1 + right]
+```
+
+However the and operator can be represented as a function of the sum of the two bits. That is, there is a table such that `AND(X, Y) = Table[x + y]`. Look at the following table
+
+| xy | x + y | AND(X, Y) |
+|-------|--------| -- |
+| 00 | 00  | 0 |
+| 01  | 01  | 0 |
+| 10  | 01  | 0 |
+| 11 | 10 | 1 |
+
+THe corresponding table satisfies the requirements
+
+| Input | Output |
+|-------|--------|
+| 00  | 0 |
+| 01  | 0 |
+| 10  | 1 |
+| 11 | \* |
+
+In fact, we can do this for any commutative operator on two bits as the sum uniquely represents the two-bit combination.
+
+Our code now looks like this.
+
+```python
+import concrete.numpy as cnp
+
+AND = cnp.LookupTable([0, 0, 1])
+EQUAL = cnp.LookupTable([1, 0, 1])
+
+one_bit_equality(left, right):
+    return EQUAL[left + right]
+    
+def bit_and(left, right):
+    return AND[left + right]
+```
+
+Using the algorithm from earlier, the code for checking 4-bit equality is as follows.
+
+```python
+def four_bit_equality(left, right):
+    x = 1
+    for i in range(1, 5):
+        k = 4 - i
+        lk = left >> k
+        rk = right >> k
+        x = AND[one_bit_equality(lk, rk) + x]
+        left -= lk << k
+        right -= rk << k
+
+    return x
+```
+
+To reduce the number of table lookups, we can instead define one table to check that all the bits are 1. This implementation looks like this
+
+```python
+ALL_ONE = cnp.LookupTable([0 for _ in range(2**4 - 1)] + [1])
+
+def fhe_equal(left, right):
+    x = 0
+    for i in range(1, 5):
+        k = 4 - i
+        lk = left >> k
+        rk = right >> k
+        x += one_bit_equality(lk, rk) << k
+        left -= lk << k
+        right -= rk << k
+
+    return ALL_ONE[x]
+```
 
 ## Data-fetching
 The data fetching component of the function
