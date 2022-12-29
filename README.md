@@ -7,3 +7,23 @@ Part of the requirements for this project was that the server must be able to ac
 
 # Tricks used
 Many operations were unsupported in `concrete-numpy` that would have been useful for building the final database. To work around these, I was able to encode certain operations on two variables into lookup tables on a single input.
+on
+# Tutorial
+The idea for creating a fully homomorphic database revolves around representing operations in such a way that they can be represented as some function on transformations of the entries. For the homomorphic database. In this example, I choose the addition operator and created a transformation that returns zero when the entry contains the queried data and returns the queried data otherwise. This way an operation on the database $F(D)$ can be represented as $F(D) = \sum_i^n f(D_i)$, the task becomes to find the corresponding function, $f$ that produces the desired results.
+## Setup
+The server will represent the database as a sequence of key-value pairs. In python, we can do this by using a list.
+```python
+class HomomorphicDatabase:
+    def __init__(self, *args):
+        self.base = []
+```
+
+## Insertion
+Insertion is quite easy and can be implemented as appending key-value pairs to the list.
+```python
+def insert(self, key, value):
+    self.base.append((key, value))
+```
+
+# Retrieval
+For the retrieval operation, $F_{\text{key}}(D)$ should return the value associated with some key in a database. One way to go about approaching this is finding a function on an entry that returns 0 when the entry's key does not match and returns the value when the entry has a matching key. This satisfies $F_{\text{key}}(D) = \sum_i^n f_{\text{key}}(D_i)$.
