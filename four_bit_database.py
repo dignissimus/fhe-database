@@ -2,9 +2,9 @@ import numpy as np
 import concrete.numpy as cnp
 import time
 
-EQUAL = cnp.LookupTable([1, 0, 0, 1])
+EQUAL = cnp.LookupTable([1, 0, 1, 1])
 ALL_ONE = cnp.LookupTable([0 for _ in range(2**4 - 1)] + [1])
-AND2 = cnp.LookupTable([0, 0, 0, 1])
+AND2 = cnp.LookupTable([0, 0, 1, 1])
 
 
 class HomomorphicOperation:
@@ -27,7 +27,7 @@ class HomomorphicOperation:
         for i in range(1, 5):
             k = 4 - i
             rk = right >> k
-            result += AND2[(left * 2) + rk] << k
+            result += AND2[left + rk] << k
             right -= rk << k
 
         return result
@@ -47,7 +47,7 @@ class HomomorphicOperation:
 
     @staticmethod
     def fhe_equal1b(left, right):
-        return EQUAL[(left * 2) + right]
+        return EQUAL[left + right]
 
 
 def variables(*names):

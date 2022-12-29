@@ -4,9 +4,9 @@ import time
 import struct
 from itertools import chain
 
-EQUAL = cnp.LookupTable([1, 0, 0, 1])
+EQUAL = cnp.LookupTable([1, 0, 1, 1])
 ALL_ONE = cnp.LookupTable([0 for _ in range(2**4 - 1)] + [1])
-AND2 = cnp.LookupTable([0, 0, 0, 1])
+AND2 = cnp.LookupTable([0, 0, 1, 1])
 
 
 class HomomorphicOperation:
@@ -27,7 +27,7 @@ class HomomorphicOperation:
         for i in range(1, 5):
             k = 4 - i
             rk = right >> k
-            result += AND2[(left * 2) + rk] << k
+            result += AND2[left + rk] << k
             right -= rk << k
 
         return result
@@ -154,32 +154,32 @@ class HomomorphicOperation:
         right7,
         right8,
     ):
-        z1 = EQUAL[(left1 * 2) + right1]
-        z2 = EQUAL[(left2 * 2) + right2]
-        z3 = EQUAL[(left3 * 2) + right3]
-        z4 = EQUAL[(left4 * 2) + right4]
-        z5 = EQUAL[(left5 * 2) + right5]
-        z6 = EQUAL[(left6 * 2) + right6]
-        z7 = EQUAL[(left7 * 2) + right7]
-        z8 = EQUAL[(left8 * 2) + right8]
+        z1 = EQUAL[left1 + right1]
+        z2 = EQUAL[left2 + right2]
+        z3 = EQUAL[left3 + right3]
+        z4 = EQUAL[left4 + right4]
+        z5 = EQUAL[left5 + right5]
+        z6 = EQUAL[left6 + right6]
+        z7 = EQUAL[left7 + right7]
+        z8 = EQUAL[left8 + right8]
 
         return all8(z1, z2, z3, z4, z5, z6, z7, z8)
 
     @staticmethod
     def all8(z1, z2, z3, z4, z5, z6, z7, z8):
-        z = AND2[(z1 * 2) + z2]
-        z = AND2[(z * 2) + z3]
-        z = AND2[(z * 2) + z4]
-        z = AND2[(z * 2) + z5]
-        z = AND2[(z * 2) + z6]
-        z = AND2[(z * 2) + z7]
-        z = AND2[(z * 2) + z8]
+        z = AND2[z1 + z2]
+        z = AND2[z + z3]
+        z = AND2[z + z4]
+        z = AND2[z + z5]
+        z = AND2[z + z6]
+        z = AND2[z + z7]
+        z = AND2[z + z8]
 
         return z
 
     @staticmethod
     def fhe_equal1b(left, right):
-        return EQUAL[(left * 2) + right]
+        return EQUAL[left + right]
 
 
 def variables(*names):
