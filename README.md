@@ -167,6 +167,16 @@ def read_entry(key, value, query):
     return fetch_data(equal, value)
 ```
 
+Using all of these, the code for retrieving an item from the database is as follows
+
+```python
+def get(self, query):
+    result = 0
+    for (entry_key, entry_value) in self.base:
+        result += read_entry(entry_key, entry_value, query)
+    return result
+```
+
 ## Replacement
 Replacing values can be thought of as applying an update operation to every single entry. Where the entry's value remains the same if the keys is different to the query and becomes the new value if the keys are the same. We can implement this function using the functions defined earlier! This is the same as fetching data from the entry in the case that the key is not equal to the query and fetching data from the updated value if the key is the equal to query. At most one of these is non-zero so we can simply add these values.
 
@@ -174,6 +184,13 @@ Replacing values can be thought of as applying an update operation to every sing
 def replace(old_key, old_value, new_key, new_value):
     equal = four_bit_equality(old_key, new_key)
     return fetch_data(equal, new_value) + fetch_data(1 - equal, old_value)
+```
+
+```python
+def update(self, query, value):
+    for index, (entry_key, entry_value) in enumerate(self.base):
+        new_value = replace(entry_key, query, value)
+        self.base[index] = (entry_key, new_value)
 ```
 
 ## Deletion
@@ -187,11 +204,21 @@ The code implementation for the required FHE circuits looks like this
 def delete_circuit(first_key, first_value, key, value, query):
     equal = four_bit_equality(key, query)
     new_key = fetch_data(equal, first_key) + fetch_data(1 - equal, key)
-    new_value = fetch_data(equal, first_value) + fetch_if(1 - equal, value)
+    new_value = fetch_data(equal, first_value) + fetch_data(1 - equal, value)
     return (new_key, new_value)
+```
+
+The delete database deletion operation will then be as follows
+
+```python
+def delete(self, query):
+    first_key, first_value = self.base.pop()
+    for index, (first_key, first_value) in enumerate(self.base):
+        new_key, new_value = delete_circuit(first_key, first_value, entry_key, entry_value, query)
+        self.base[index] = (new_key, new_value)
 ```
 
 ## Extending to 32 bits
 
 # Notes
-The `fetch_data` operation, essentially allows us to construct if statements in FHE. We calculate the result from both branches of computation and then use the function to perform selection on the data, simulating substituting in as an if statement. In my original code, this function is called `partial_multipy` as it is equivalent to multiplying data by either one or zero. `fetch_data` can be renamed as `fetch_if` and the `fetch_if(condition, value1) + fetch_if(1 - condition, value2)` idiom can be used to construct a new macro `if_then_else(condition, value1, value2)`
+The `fetch_data` operation, essentially allows us to construct if statements in FHE. We calculate the result from both branches of computation and then use the function to perform selection on the data, simulating substituting in as an if statement. In my original code, this function is called `partial_multipy` as it is equivalent to multiplying data by either one or zero. `fetch_data` can be renamed as `fetch_if` and the `fetch_if(condition, value1) + fetch_if(1 - condition, value2)` idiom can be used to construct a new macro `if_then_else(condition, value1, value2)`. This could also be used to construct if statements at the compiler level and also bounded control flow statements (e.g. a while loop with a maximum number of iterations).
