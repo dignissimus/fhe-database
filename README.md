@@ -219,6 +219,35 @@ def delete(self, query):
 ```
 
 ## Extending to 32 bits
+The database can be extended so that it can support 32 bit values. To do this, represent as 32-bit values as a sequence of 8 4-bit values. When checking equality of two 32-bit values, check the equality of each pair of 4-bit values and ensure they are all equal using the AND operation. When performing any conditional statements on database entry values, perform them on all of the 4-bit data that compose the entry's value and proceed as normal. The definition for the eight-bit equality circuit can now be written as follows
+
+```python
+def all8(z1, z2, z3, z4, z5, z6, z7, z8):
+    z = AND2[z1 + z2]
+    z = AND2[z + z3]
+    z = AND2[z + z4]
+    z = AND2[z + z5]
+    z = AND2[z + z6]
+    z = AND2[z + z7]
+    z = AND2[z + z8]
+
+    return z
+
+def eight_bit_equality(
+    left1, left2, left3, left4, left5, left6, left7, left8,
+    right1, right2, right3, right4, right5, right6, right7, right8,
+):
+    z1 = EQUAL[left1 + right1]
+    z2 = EQUAL[left2 + right2]
+    z3 = EQUAL[left3 + right3]
+    z4 = EQUAL[left4 + right4]
+    z5 = EQUAL[left5 + right5]
+    z6 = EQUAL[left6 + right6]
+    z7 = EQUAL[left7 + right7]
+    z8 = EQUAL[left8 + right8]
+
+    return all8(z1, z2, z3, z4, z5, z6, z7, z8)
+```
 
 # Notes
 The `fetch_data` operation, essentially allows us to construct if statements in FHE. We calculate the result from both branches of computation and then use the function to perform selection on the data, simulating substituting in as an if statement. In my original code, this function is called `partial_multipy` as it is equivalent to multiplying data by either one or zero. `fetch_data` can be renamed as `fetch_if` and the `fetch_if(condition, value1) + fetch_if(1 - condition, value2)` idiom can be used to construct a new macro `if_then_else(condition, value1, value2)`. This could also be used to construct if statements at the compiler level and also bounded control flow statements (e.g. a while loop with a maximum number of iterations).
