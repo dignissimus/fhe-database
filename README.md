@@ -8,6 +8,9 @@ Part of the requirements for this project was that the server must be able to ac
 # Tricks used
 Many operations were unsupported in `concrete-numpy` that would have been useful for building the final database. To work around these, I was able to encode certain operations on two variables into lookup tables on a single input.
 on
+# Try it out!
+Run `python four_bit_database.py` to see it in action and have a look inside the `four_bit_database.py` file to see how it was implemented.
+
 # Tutorial
 The idea for creating a fully homomorphic database revolves around representing operations in such a way that they can be represented as some function on transformations of the entries. For the homomorphic database. In this example, I choose the addition operator and created a transformation that returns zero when the entry contains the queried data and returns the queried data otherwise. This way an operation on the database $F(D)$ can be represented as $F(D) = \sum_{i}^{n} f(D_i)$, the task becomes to find the corresponding function, $f$ that produces the desired results.
 ## Setup
