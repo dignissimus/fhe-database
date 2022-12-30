@@ -183,7 +183,7 @@ Take the first entry in the database, remove it from the database and store it i
 
 The code implementation for the required FHE circuits looks like this
 
-```
+```python
 def delete_circuit(first_key, first_value, key, value, query):
     equal = four_bit_equality(key, query)
     new_key = fetch_data(equal, first_key) + fetch_data(1 - equal, key)
