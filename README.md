@@ -177,5 +177,21 @@ def replace(old_key, old_value, new_key, new_value):
 ```
 
 ## Deletion
+The deletion function requires a bit of thinking to come up with. Zero-ing out a row with FHE will not allow us to reclaim the space occupied by the item that the client wishes to delete. We can construct an algorithm to perform entry deletion from the database in such a way that allows us to free up space with each operation while still ensuring that the server knows nothing about which item was deleted. The process is as follows.
+
+Take the first entry in the database, remove it from the database and store it in a variable. Now, for each remaining item in the database, replace the entry with the entry selected at the start if the key of this entry matches the key specified in the client's deletion query. If the client wanted to delete the first entry, then the match is never successful and the entry is never re-inserted to the database so it will successfuly be deleted. If the client wants to delete any other entry then it will have been replaced with the first entry after matching the client's query and never again re-inserted into the database so it will have been deleted successfully.
+
+The code implementation for the required FHE circuits looks like this
+
+```
+def delete_circuit(first_key, first_value, key, value, query):
+    equal = four_bit_equality(key, query)
+    new_key = fetch_data(equal, first_key) + fetch_data(1 - equal, key)
+    new_value = fetch_data(equal, first_value) + fetch_if(1 - equal, value)
+    return (new_key, new_value)
+```
 
 ## Extending to 32 bits
+
+# Notes
+The `fetch_data` operation, essentially allows us to construct if statements in FHE. We calculate the result from both branches of computation and then use the function to perform selection on the data, simulating substituting in as an if statement. In my original code, this function is called `partial_multipy` as it is equivalent to multiplying data by either one or zero. `fetch_data` can be renamed as `fetch_if` and the `fetch_if(condition, value1) + fetch_if(1 - condition, value2)` idiom can be used to construct a new macro `if_then_else(condition, value1, value2)`
