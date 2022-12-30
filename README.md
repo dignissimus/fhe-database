@@ -183,11 +183,15 @@ def get(self, query):
 ## Replacement
 Replacing values can be thought of as applying an update operation to every single entry. Where the entry's value remains the same if the keys is different to the query and becomes the new value if the keys are the same. We can implement this function using the functions defined earlier! This is the same as fetching data from the entry in the case that the key is not equal to the query and fetching data from the updated value if the key is the equal to query. At most one of these is non-zero so we can simply add these values.
 
+The code for the FHE circuit is as follows
+
 ```python
 def replace(old_key, old_value, new_key, new_value):
     equal = four_bit_equality(old_key, new_key)
     return fetch_data(equal, new_value) + fetch_data(1 - equal, old_value)
 ```
+
+The code for the database operation looks like this
 
 ```python
 def update(self, query, value):
