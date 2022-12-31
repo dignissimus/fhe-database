@@ -230,13 +230,13 @@ The database can be extended so that it can support 32 bit values. To do this, r
 
 ```python
 def all8(z1, z2, z3, z4, z5, z6, z7, z8):
-    z = AND2[z1 + z2]
-    z = AND2[z + z3]
-    z = AND2[z + z4]
-    z = AND2[z + z5]
-    z = AND2[z + z6]
-    z = AND2[z + z7]
-    z = AND2[z + z8]
+    z = AND[z1 + z2]
+    z = AND[z + z3]
+    z = AND[z + z4]
+    z = AND[z + z5]
+    z = AND[z + z6]
+    z = AND[z + z7]
+    z = AND[z + z8]
 
     return z
 
@@ -254,6 +254,14 @@ def eight_bit_equality(
     z8 = EQUAL[left8 + right8]
 
     return all8(z1, z2, z3, z4, z5, z6, z7, z8)
+```
+
+We can remove the sequential `AND` lookups by defining a new table, `AND8`
+
+```python
+AND8 = cnp.LookupTable([0] * 7 + [1])
+def all8(z1, z2, z3, z4, z5, z6, z7, z8):
+    return AND8[z1 + z2 + z3 + z4 + z5 + z6 + z7 + z8]
 ```
 
 # Notes
