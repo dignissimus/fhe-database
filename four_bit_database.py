@@ -21,6 +21,18 @@ class HomomorphicOperation:
         ) + HomomorphicOperation.partial_multiply(1 - equal, old_value)
 
     @staticmethod
+    def delete(first_key, first_value, key, value, query):
+        equal = HomomorphicOperation.fhe_equal(key, query)
+        new_key = HomomorphicOperation.partial_multiply(
+            equal, first_key
+        ) + HomomorphicOperation.partial_multiply(1 - equal, key)
+
+        new_value = HomomorphicOperation.partial_multiply(
+            equal, first_value
+        ) + HomomorphicOperation.partial_multiply(1 - equal, value)
+        return cnp.array([new_key, new_value])
+
+    @staticmethod
     def partial_multiply(left, right):
         result = 0
 
@@ -65,6 +77,11 @@ class HomomorphicCircuitBoard:
             for l in np.int_(np.linspace((0,) * 4, (2**4 - 1,) * 4, 100)).tolist()
         ]
 
+        input5 = [
+            tuple(l)
+            for l in np.int_(np.linspace((0,) * 5, (2**4 - 1,) * 5, 100)).tolist()
+        ]
+
         self.retrieve = cnp.Compiler(
             HomomorphicOperation.retrieve, variables("key", "value", "query")
         ).compile(input3)
@@ -73,6 +90,11 @@ class HomomorphicCircuitBoard:
             HomomorphicOperation.update,
             variables("old_key", "old_value", "new_key", "new_value"),
         ).compile(input4)
+
+        self.delete = cnp.Compiler(
+            HomomorphicOperation.delete,
+            variables("first_key", "query", "first_value", "key", "value"),
+        ).compile(input5)
 
 
 class HomomorphicDatabase:
@@ -92,6 +114,7 @@ class HomomorphicDatabase:
         self.circuit = HomomorphicCircuitBoard()
         self.update = self.circuit.update
         self.retrieve = self.circuit.retrieve
+        self.remove = self.circuit.delete
 
     def insert(self, key, value):
         self.base.append((key, value))
@@ -119,6 +142,17 @@ class HomomorphicDatabase:
         print(
             f"replace: Spent {e - s - encryption_time:.2F}s processing data and an extra {encryption_time:.2f}s encrypting and decrypting results"
         )
+
+    def delete(self, query):
+        carry_key, carry_value = self.base.pop()
+        for index, (entry_key, entry_value) in enumerate(self.base):
+            encrypted = self.remove.encrypt(
+                carry_key, carry_value, entry_key, entry_value, query
+            )
+            result = self.remove.run(encrypted)
+            result_d = self.remove.decrypt(result)
+            new_key, new_value = result_d
+            self.base[index] = (new_key, new_value)
 
     def get(self, key):
         """
@@ -162,8 +196,14 @@ print("1 =", database.get(1))
 
 print("Replacing a value from the database")
 database.replace(1, 13)
-print("Retrieving a value from the database")
 print("13 =", database.get(1))
+
+print("Adding another item to the database")
+database.insert(2, 2)
+print("Deleting a value from the database")
+database.delete(1)
+print("0 =", database.get(1))
+
 
 database.insert(5, 6)
 database.insert(8, 9)
